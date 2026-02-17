@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>線上擲筊</title>
+    <!-- PWA Manifest 設定：讓手機可以安裝成 App 圖示 -->
+    <link rel="manifest" href="data:application/manifest+json,{'name':'線上擲筊','short_name':'擲筊','start_url':'.','display':'standalone','background_color':'#ffffff','theme_color':'#d32f2f'}">
+    <style>
+        :root {
+            --primary-red: #d32f2f;
+            --neutral-bg: #fdfdfd;
+            /* 部署後會自動讀取您上傳的 bg.png */
+            --bg-image: url('bg.png'); 
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: "PingFang TC", "Heiti TC", "Microsoft JhengHei", sans-serif;
+            text-align: center;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            
+            /* 背景設定：優先顯示 bg.png，若無則顯示簡約漸層 */
+            background-color: var(--neutral-bg);
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.65)),
+                var(--bg-image),
+                linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* 內容容器：毛玻璃效果 */
+        .container {
+            padding: 40px 25px;
+            width: 90%;
+            max-width: 360px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,1);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            color: var(--primary-red);
+            margin: 0;
+            letter-spacing: 6px;
+            font-weight: bold;
+        }
+
+        /* 擲筊顯示區 */
+        .cup-area {
+            height: 160px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 85px;
+            gap: 20px;
+            cursor: pointer;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+            user-select: none;
+        }
+
+        /* 晃動動畫 */
+        .shaking {
+            animation: shake 0.12s infinite ease-in-out;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-2px, 0px) rotate(-3deg); }
+            40% { transform: translate(2px, -1px) rotate(3deg); }
+            60% { transform: translate(-2px, 1px) rotate(-2deg); }
+            80% { transform: translate(2px, 0px) rotate(2deg); }
+            100% { transform: translate(1px, 1px) rotate(0deg); }
+        }
+
+        /* 結果文字區 */
+        .result-box {
+            min-height: 130px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        #result-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-red);
+            margin: 0;
+            transition: opacity 0.3s;
+        }
+
+        #result-desc {
+            font-size: 16px;
+            color: #333;
+            margin-top: 12px;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        /* 按鈕設計 */
+        .cast-btn {
+            background: linear-gradient(135deg, var(--primary-red), #9a0000);
+            color: white;
+            border: none;
+            padding: 20px 0;
+            width: 100%;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(211, 47, 47, 0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .cast-btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 4px 10px rgba(211, 47, 47, 0.2);
+        }
+
+        .footer-text {
+            font-size: 13px;
+            color: #999;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>誠心擲筊</h1>
+        </div>
+
+        <div id="cup-display" class="cup-area" onclick="handleCast()">
+            <div id="cup-1">🔴</div>
+            <div id="cup-2">🔴</div>
+        </div>
+
+        <div class="result-box">
+            <p id="result-title">心誠則靈</p>
+            <p id="result-desc">請於心中默念所求之事後<br>點擊按鈕或筊對開始請示</p>
+        </div>
+
+        <button class="cast-btn" onclick="handleCast()">誠心擲筊</button>
+        
+        <div class="footer-text">
+            數位擲筊系統 🌙 祈求平安
+        </div>
+    </div>
+
+    <script>
+        let isCasting = false;
+
+        function handleCast() {
+            if (isCasting) return;
+            
+            isCasting = true;
+            const cupArea = document.getElementById('cup-display');
+            const resTitle = document.getElementById('result-title');
+            const resDesc = document.getElementById('result-desc');
+            const cup1 = document.getElementById('cup-1');
+            const cup2 = document.getElementById('cup-2');
+
+            // 觸發手機震動 (Haptic Feedback)
+            if (navigator.vibrate) {
+                navigator.vibrate([100, 50, 100]);
+            }
+
+            // 動態更新狀態
+            cupArea.classList.add('shaking');
+            resTitle.style.opacity = "0.5";
+            resTitle.innerText = "請示中...";
+            resDesc.innerText = "正在向神明請示中，請稍候...";
+
+            setTimeout(() => {
+                cupArea.classList.remove('shaking');
+                resTitle.style.opacity = "1";
+                
+                // 擲筊邏輯：true=凸面(🔴), false=平面(🌙)
+                const r1 = Math.random() < 0.5;
+                const r2 = Math.random() < 0.5;
+
+                // 更新畫面顯示
+                cup1.innerText = r1 ? "🔴" : "🌙";
+                cup2.innerText = r2 ? "🔴" : "🌙";
+
+                // 參考聞道堂解釋邏輯：
+                if (r1 !== r2) {
+                    // 聖筊：一平一凸
+                    resTitle.innerText = "【 聖筊 】";
+                    resDesc.innerHTML = "神明應允請求。<br>代表目前所請示的內容是正確的。";
+                } else if (!r1 && !r2) {
+                    // 笑筊：兩平 (陽陽)
+                    resTitle.innerText = "【 笑筊 】";
+                    resDesc.innerHTML = "需補充更多資料。<br>請確認細節（如時、地、人）後再請示。";
+                } else {
+                    // 蓋筊：兩凸 (陰陰)
+                    resTitle.innerText = "【 蓋筊 】";
+                    resDesc.innerHTML = "內容不妥，需要修改。<br>請調整方案或修正時間後再次請示。";
+                }
+
+                isCasting = false;
+            }, 1200);
+        }
+    </script>
+</body>
+</html>
