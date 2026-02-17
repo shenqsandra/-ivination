@@ -28,7 +28,6 @@
             height: 100vh;
             overflow: hidden;
             background-color: var(--neutral-bg);
-            /* 改為純淨的漸層背景，不使用背景圖 */
             background-image: radial-gradient(circle at center, #ffffff 0%, #e0e0e0 100%);
             background-size: cover;
             background-position: center;
@@ -39,8 +38,8 @@
             width: 92%;
             max-width: 360px;
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-radius: 30px;
             box-shadow: 0 15px 45px rgba(0,0,0,0.08);
             border: 1px solid rgba(255,255,255,1);
@@ -60,11 +59,11 @@
 
         /* 筊杯顯示區域 */
         .cup-area {
-            height: 220px;
+            height: 240px;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             cursor: pointer;
             user-select: none;
             position: relative;
@@ -72,8 +71,8 @@
         }
 
         .cup-image-container {
-            width: 100px;
-            height: 140px;
+            width: 110px;
+            height: 150px;
             position: relative;
             transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
@@ -84,43 +83,31 @@
         .cup-image {
             width: 100%;
             height: auto;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.25));
+            filter: drop-shadow(0 15px 20px rgba(0,0,0,0.3));
             pointer-events: none;
         }
 
-        /* 備援圖形 */
-        .fallback-cup {
-            position: absolute;
-            width: 80px;
-            height: 120px;
-            background-color: var(--primary-red);
-            border-radius: 100% 10% 100% 10%;
-            transform: rotate(-45deg);
-            border: 3px solid #8e1b1b;
-            display: none;
-        }
-
-        /* 晃動動畫 */
+        /* 第一階段：手中晃動動畫 (僅位移，不旋轉) */
         .shaking .cup-image-container {
-            animation: hand-shake 0.15s infinite ease-in-out;
+            animation: hand-shake 0.12s infinite ease-in-out;
         }
 
         @keyframes hand-shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            50% { transform: translate(-1px, -3px) rotate(-3deg); }
-            100% { transform: translate(1px, 1px) rotate(0deg); }
+            0% { transform: translate(2px, 2px); }
+            50% { transform: translate(-2px, -4px); }
+            100% { transform: translate(2px, 2px); }
         }
 
-        /* 拋擲落地動畫 */
+        /* 第二階段：拋擲落地動畫 (移除所有 rotate 設定) */
         .throwing .cup-image-container {
             animation: throw-and-land 0.9s ease-out forwards;
         }
 
         @keyframes throw-and-land {
-            0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
-            30% { transform: translateY(-140px) scale(1.4) rotate(210deg); opacity: 0.9; }
-            70% { transform: translateY(30px) scale(0.85) rotate(350deg); opacity: 1; }
-            85% { transform: translateY(-15px) scale(1) rotate(365deg); }
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            30% { transform: translateY(-180px) scale(1.6); opacity: 0.9; }
+            70% { transform: translateY(40px) scale(0.85); opacity: 1; }
+            85% { transform: translateY(-20px) scale(1); }
             100% { transform: translateY(0) scale(1); }
         }
 
@@ -151,7 +138,7 @@
             background: linear-gradient(135deg, var(--primary-red), #9a0000);
             color: white;
             border: none;
-            padding: 20px 0;
+            padding: 22px 0;
             width: 100%;
             font-size: 22px;
             font-weight: bold;
@@ -183,12 +170,10 @@
 
         <div id="cup-display" class="cup-area">
             <div id="wrap-1" class="cup-image-container">
-                <img id="cup-1" class="cup-image" src="cup_convex.png" alt="凸面" onerror="handleImageError(this)">
-                <div class="fallback-cup"></div>
+                <img id="cup-1" class="cup-image" src="cup_convex.png" alt="凸面">
             </div>
             <div id="wrap-2" class="cup-image-container">
-                <img id="cup-2" class="cup-image" src="cup_convex.png" alt="凸面" onerror="handleImageError(this)">
-                <div class="fallback-cup"></div>
+                <img id="cup-2" class="cup-image" src="cup_convex.png" alt="凸面">
             </div>
         </div>
 
@@ -206,12 +191,6 @@
 
     <script>
         let isCasting = false;
-
-        function handleImageError(img) {
-            img.style.display = 'none';
-            const fallback = img.parentElement.querySelector('.fallback-cup');
-            if (fallback) fallback.style.display = 'block';
-        }
 
         function handleCast() {
             if (isCasting) return;
@@ -238,20 +217,21 @@
                 cupDisplay.classList.remove('shaking');
                 cupDisplay.classList.add('throwing');
                 
-                const r1 = Math.random() < 0.5;
+                const r1 = Math.random() < 0.5; // true=凸, false=平
                 const r2 = Math.random() < 0.5;
 
                 setTimeout(() => {
                     img1.src = r1 ? "cup_convex.png" : "cup_flat.png";
                     img2.src = r2 ? "cup_convex.png" : "cup_flat.png";
                     
-                    const rot1 = Math.floor(Math.random() * 60 - 30);
-                    const rot2 = Math.floor(Math.random() * 60 - 30);
-                    const transX1 = Math.floor(Math.random() * 40 - 20);
-                    const transX2 = Math.floor(Math.random() * 40 - 20);
+                    // 隨機落地位置位移，但移除隨機旋轉角度
+                    const transX1 = Math.floor(Math.random() * 60 - 30);
+                    const transX2 = Math.floor(Math.random() * 60 - 30);
+                    const transY1 = Math.floor(Math.random() * 30 - 15);
+                    const transY2 = Math.floor(Math.random() * 30 - 15);
                     
-                    wrap1.style.transform = `translateX(${transX1}px) rotate(${rot1}deg)`;
-                    wrap2.style.transform = `translateX(${transX2}px) rotate(${rot2}deg)`;
+                    wrap1.style.transform = `translate(${transX1}px, ${transY1}px)`;
+                    wrap2.style.transform = `translate(${transX2}px, ${transY2}px)`;
                 }, 350);
 
                 setTimeout(() => {
